@@ -17,40 +17,43 @@ class SheepHeard:
         self.dog_velocity = 0
 
         # Goal position
-        self.goal = np.array([10, 10])
+        self.goal = np.array([115, 300])
         # phi_o
-        self.goal_radius = 4
+        self.goal_radius = 45
 
         # dog starting position
-        self.dog_pos = np.array([-10.0, -10.0])
+        self.dog_pos = np.array([0.0, 0.0])
         # phi_n
-        self.dog_radius = 20
+        self.dog_radius = 100
 
         # sampling period
         self.Ts = 0.01
 
         # sheep
-        self.sheep_list = [np.array([-8.5, -8.0]),np.array([-7.5, -7.0]),np.array([-7.5, -8.0]),np.array([-7, -7.5]),np.array([-6.8, -8.0]),np.array([-6.0, -7.0]),np.array([-7.0, -6.5])]
-
+        self.sheep_list = [np.array([57.0, 50.0]),np.array([44.0, 71.0]),np.array([59.0, 64.0]),np.array([73.0, 71.0]),np.array([78.0, 60.0]),np.array([82.0, 71.0]),np.array([87.0, 58.0])]
+        # self.sheep_list = np.array(self.sheep_list)
+        # self.sheep_list[:,0] += 10
+        # self.sheep_list[:,1] += 10
+        # self.sheep_list = list(self.sheep_list)
 
         # inter sheep distance phi_s
-        self.sheep_radius = 0.2
+        self.sheep_radius = 5
 
         # TODO other parameters
         self.ai = 0.1
         self.wi = 0.1
-        self.alpha = 75
-        self.beta = 0.375
-        self.gama = -0.5
-        self.fi_r = 0.5
-        self.fi_g = 2
-        self.fi_d = 20
-        self.theta_t = 3 * math.pi / 4
-        self.theta_l = math.pi / 4
-        self.theta_r = -math.pi / 4
-        self.r_a = 3
-        self.gamma_a = 15
-        self.gamma_b = 12.5
+        self.alpha = 7000
+        self.beta = 1400
+        self.gama = 140
+        self.fi_r = 15
+        self.fi_g = 20
+        self.fi_d = 30
+        self.theta_t =  2*math.pi / 3
+        self.theta_l = math.pi/4
+        self.theta_r = -math.pi/4
+        self.r_a = 50
+        self.gamma_a = 450
+        self.gamma_b = 375
 
 
     def run(self):
@@ -64,9 +67,10 @@ class SheepHeard:
             self.current_step += 1
             # u(current_step)
             self.calculate_dog_velocity()
-            print(self.dog_velocity)
+            # print(self.dog_velocity)
+            # print(self.dog_velocity)
             visibilitiy=visible_sheep(self.dog_pos,self.dog_radius, self.goal,self.sheep_list)
-            right_most_visible_from_dog(self.sheep_list, visibilitiy, self.dog_pos)
+            # right_most_visible_from_dog(self.sheep_list, visibilitiy, self.dog_pos)
             self.dog_pos = self.dog_pos+self.Ts * self.dog_velocity
 
             for ii, sheep in enumerate(self.sheep_list):
@@ -100,11 +104,19 @@ class SheepHeard:
 
 
             from matplotlib import pyplot as plt
+            plt.clf()
             s = np.array(self.sheep_list)
-            plt.scatter(s[:, 0], s[:, 1])
-            plt.scatter(self.dog_pos[0], self.dog_pos[1])
+            plt.scatter(s[:, 0], s[:, 1],c='blue')
+            plt.scatter(self.dog_pos[0], self.dog_pos[1],c='red')
             plt.scatter(self.goal[0], self.goal[1])
-            plt.show()
+            plt.xlim([0, 250])
+            plt.ylim([0, 350])
+            visibilitiy = visible_sheep(self.dog_pos, self.dog_radius, self.goal, self.sheep_list)
+            calculate_center_of_visible_sheep(self.sheep_list, visibilitiy)
+
+            # left_most_visible_from_sheepfold(self.sheep_list, visibilitiy, self.goal)
+            # right_most_visible_from_sheepfold(self.sheep_list, visibilitiy, self.goal)
+            plt.show(block=False)
 
 
 
@@ -119,23 +131,23 @@ class SheepHeard:
             if all_on_right(self.dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal, self.dog_radius, 'left', self.dog_pos) > self.theta_t:
                 self.lmbda=0
                 # TODO visibility smo že zračunali
-                temp =((self.dog_pos - right_most_visible_from_dog(self.sheep_list,
+                temp =((right_most_visible_from_dog(self.sheep_list,
                                                                         visible_sheep(self.dog_pos, self.dog_radius,
-                                                                                      self.goal, self.sheep_list), self.goal)))
+                                                                                      self.goal, self.sheep_list), self.goal))-self.dog_pos)
                 if vector_size(temp) >= self.r_a:
                     self.dog_velocity = self.gamma_a * unit_vector(temp)
                 else:
                     c,s = np.cos(self.theta_r), np.sin(self.theta_r)
                     R = np.array(((c,-s), (s, c)))
                     # mnozenje matrike z vektorjem
-                    self.dog_velocity = self.gamma_b * np.array(unit_vector(temp)).dot(R)
+                    self.dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
 
             elif all_on_left(self.dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal, self.dog_radius, 'right', self.dog_pos) > self.theta_t:
                 self.lmbda=1
                 # TODO visibility smo že zračunali
-                temp =((self.dog_pos - left_most_visible_from_sheepfold(self.sheep_list,
+                temp =((left_most_visible_from_dog(self.sheep_list,
                                                                         visible_sheep(self.dog_pos, self.dog_radius,
-                                                                                      self.goal, self.sheep_list), self.goal)))
+                                                                                      self.goal, self.sheep_list), self.goal))-self.dog_pos)
 
 
                 if vector_size(temp) >= self.r_a:
@@ -144,14 +156,13 @@ class SheepHeard:
                     c, s = np.cos(self.theta_l), np.sin(self.theta_l)
                     R = np.array(((c, -s), (s, c)))
                     # mnozenje matrike z vektorjem
-                    self.dog_velocity = self.gamma_b * np.array(unit_vector(temp)).dot(R)
+                    self.dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
 
             elif self.lmbda == 1:
-                temp = ((self.dog_pos - left_most_visible_from_sheepfold(self.sheep_list,
-                                                                                    visible_sheep(self.dog_pos,
+                temp = (( left_most_visible_from_dog(self.sheep_list,   visible_sheep(self.dog_pos,
                                                                                                   self.dog_radius,
                                                                                                   self.goal,
-                                                                                                  self.sheep_list), self.goal)))
+                                                                                                  self.sheep_list), self.goal))-self.dog_pos)
 
                 if vector_size(temp) >= self.r_a:
                     self.dog_velocity = self.gamma_a * unit_vector(temp)
@@ -159,20 +170,20 @@ class SheepHeard:
                     c, s = np.cos(self.theta_l), np.sin(self.theta_l)
                     R = np.array(((c, -s), (s, c)))
                     # mnozenje matrike z vektorjem
-                    self.dog_velocity = self.gamma_b * np.array(unit_vector(temp)).dot(R)
+                    self.dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
             else:
-                temp = ((self.dog_pos - right_most_visible_from_dog(self.sheep_list,
+                temp = ((right_most_visible_from_dog(self.sheep_list,
                                                                                visible_sheep(self.dog_pos,
                                                                                              self.dog_radius,
                                                                                              self.goal,
-                                                                                             self.sheep_list), self.goal)))
+                                                                                             self.sheep_list), self.goal))-self.dog_pos)
                 if vector_size(temp) >= self.r_a:
                     self.dog_velocity = self.gamma_a * unit_vector(temp)
                 else:
                     c, s = np.cos(self.theta_r), np.sin(self.theta_r)
                     R = np.array(((c, -s), (s, c)))
                     # mnozenje matrike z vektorjem
-                    self.dog_velocity = self.gamma_b * np.array(unit_vector(temp)).dot(R)
+                    self.dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
 
 
         else:

@@ -9,23 +9,27 @@ def is_in_visible_area(dog, sheep, radius):
     distance = math.sqrt(math.pow(dog[0] - sheep[0], 2) + math.pow(dog[1]- sheep[1], 2))
     return distance < radius
 
-def all_on_right(dog_pos, goal_pos, sheeps):
-    dog_goal_vector = unit_vector(goal_pos-dog_pos)
-    for sheep_pos in sheeps:
-        dog_sheep_vector = unit_vector(sheep_pos-dog_pos)
-        # TODO PREVERI, ČE JE USMERITEV PRAVA
-        angle = math.atan2(dog_sheep_vector[0], dog_sheep_vector[1]) - math.atan2(dog_goal_vector[0], dog_goal_vector[1])
-        if  angle < 0 or angle > math.pi:
-            return False
-    return True
-
 def all_on_left(dog_pos, goal_pos, sheeps):
     dog_goal_vector = unit_vector(goal_pos-dog_pos)
     for sheep_pos in sheeps:
         dog_sheep_vector = unit_vector(sheep_pos-dog_pos)
         # TODO PREVERI, ČE JE USMERITEV PRAVA
-        angle = math.atan2(dog_sheep_vector[0], dog_sheep_vector[1]) - math.atan2(dog_goal_vector[0], dog_goal_vector[1])
-        if angle > 0 or angle < math.pi:
+        # angle = math.atan2(dog_sheep_vector[0], dog_sheep_vector[1]) - math.atan2(dog_goal_vector[0], dog_goal_vector[1])
+        d = (goal_pos[0] - dog_pos[0]) * (sheep_pos[1] - dog_pos[1]) - (goal_pos[1] - dog_pos[1]) * (
+                sheep_pos[0] - dog_pos[0])
+        if  d < 0:
+            return False
+    return True
+
+def all_on_right(dog_pos, goal_pos, sheeps):
+    dog_goal_vector = unit_vector(goal_pos-dog_pos)
+    for sheep_pos in sheeps:
+        dog_sheep_vector = unit_vector(sheep_pos-dog_pos)
+        # TODO PREVERI, ČE JE USMERITEV PRAVA
+        d =(goal_pos[0] - dog_pos[0]) * (sheep_pos[1] - dog_pos[1]) - (goal_pos[1] - dog_pos[1]) * (
+                    sheep_pos[0] - dog_pos[0])
+        # angle = math.atan2(dog_sheep_vector[1], dog_sheep_vector[0]) - math.atan2(dog_goal_vector[0], dog_goal_vector[1])
+        if d > 0:
             return False
     return True
 
@@ -52,7 +56,6 @@ def left_most_visible_from_sheepfold(sheeps, visibility, goal):
     initial_vector = unit_vector(initial_point-goal)
     left_most_angle = math.atan2(left_most_vector[0], left_most_vector[1]) - math.atan2(initial_vector[0], initial_vector[1])
     left_most_dist = euclidean(left_most, goal)
-
 
     for sheep in visible_sheeps:
         sheep_goal_vector = unit_vector(sheep-goal)
@@ -94,7 +97,7 @@ def right_most_visible_from_sheepfold(sheeps, visibility, goal):
                 right_most_dist = euclidean(left_most, goal)
     return right_most
 
-def right_most_visible_from_dog(sheeps, visibility,dog_pos):
+def left_most_visible_from_dog(sheeps, visibility,dog_pos):
     sheeps = np.array(sheeps)
     visible_sheeps = sheeps[np.array(visibility).astype(np.bool)]
     initial_point = np.array([0.0,0.0])
@@ -112,7 +115,7 @@ def right_most_visible_from_dog(sheeps, visibility,dog_pos):
 
     return right_most
 
-def left_most_visible_from_dog(sheeps, visibility,dog_pos):
+def right_most_visible_from_dog(sheeps, visibility,dog_pos):
     sheeps = np.array(sheeps)
     visible_sheeps = sheeps[np.array(visibility).astype(np.bool)]
     initial_point = np.array([0.0,0.0])
@@ -132,7 +135,8 @@ def left_most_visible_from_dog(sheeps, visibility,dog_pos):
 
 
 def calculate_center_of_visible_sheep(sheeps, dog_visibility):
-    visible_sheep = sheeps[dog_visibility]
+    sheeps = np.array(sheeps)
+    visible_sheep = sheeps[np.array(dog_visibility).astype(np.bool)]
     xx = np.sum(np.array(visible_sheep), axis=0)
     N_visible, _ = np.shape(np.array(visible_sheep))
     return xx/N_visible
@@ -145,7 +149,7 @@ def calculateLC(sheeps, goal, dog_radius, left_right_sheep, dog_pos):
         # p_c
         center_of_visible_sheep = calculate_center_of_visible_sheep(sheeps, dog_visibility)
         D_cd = unit_vector(goal-center_of_visible_sheep)
-        return np.dot(D_cd, left_most_sheep_dog_vector)/(vector_size(D_cd)*vector_size(left_most_sheep_dog_vector))
+        return math.acos(np.dot(D_cd, left_most_sheep_dog_vector)/(vector_size(D_cd)*vector_size(left_most_sheep_dog_vector)))
 
     else:
         dog_visibility = visible_sheep(dog_pos, dog_radius, goal, sheeps)
@@ -154,7 +158,7 @@ def calculateLC(sheeps, goal, dog_radius, left_right_sheep, dog_pos):
         # p_c
         center_of_visible_sheep = calculate_center_of_visible_sheep(sheeps, dog_visibility)
         D_cd = unit_vector(goal - center_of_visible_sheep)
-        return np.dot(D_cd, right_most_sheep_dog_vector) / (vector_size(D_cd) * vector_size(right_most_sheep_dog_vector))
+        return math.acos(np.dot(D_cd, right_most_sheep_dog_vector) / (vector_size(D_cd) * vector_size(right_most_sheep_dog_vector)))
 
 """ returns list which for each sheep specifies if visible (1) or not (0)"""
 
