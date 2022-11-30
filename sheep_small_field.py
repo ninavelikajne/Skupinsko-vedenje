@@ -43,7 +43,7 @@ class SheepHeard:
         self.ai = 0.1
         self.wi = 0.1
         self.alpha = 7000
-        self.beta = 1400
+        self.beta = 400
         self.gama = 140
         self.fi_r = 15
         self.fi_g = 20
@@ -52,8 +52,8 @@ class SheepHeard:
         self.theta_l = math.pi/4
         self.theta_r = -math.pi/4
         self.r_a = 50
-        self.gamma_a = 450
-        self.gamma_b = 375
+        self.gamma_a = 750
+        self.gamma_b = 575
 
 
     def run(self):
@@ -62,6 +62,15 @@ class SheepHeard:
         """
 
         while (not self.success and self.current_step < self.max_steps):
+            from matplotlib import pyplot as plt
+            plt.clf()
+            s = np.array(self.sheep_list)
+            plt.scatter(s[:, 0], s[:, 1], c='blue')
+            plt.scatter(self.dog_pos[0], self.dog_pos[1], c='red')
+            plt.scatter(self.goal[0], self.goal[1])
+            plt.xlim([0, 250])
+            plt.ylim([0, 350])
+            plt.show(block=False)
             from matplotlib import pyplot as plt
             # plt.scatter()
             self.current_step += 1
@@ -74,6 +83,8 @@ class SheepHeard:
             self.dog_pos = self.dog_pos+self.Ts * self.dog_velocity
 
             for ii, sheep in enumerate(self.sheep_list):
+                # if (sheep == [70.45771376, 57.77143582]).all():
+                #     print("!")
                 x=vector_size(sheep-self.dog_pos)
                 if x>0 and x<=self.dog_radius:
                     fi =self.alpha* (1/x - 1/self.dog_radius)
@@ -81,10 +92,11 @@ class SheepHeard:
                     fi=0
 
                 v_di = fi*unit_vector(sheep-self.dog_pos)
+                v_si=0
                 for sheep_ in self.sheep_list:
                     if (sheep == sheep_).all():
                         continue
-                    temp_size = vector_size(sheep - sheep_)
+                    temp_size = vector_size(sheep_-sheep)
                     if temp_size > self.sheep_radius and temp_size <= self.fi_r:
                         psi = self.beta * (1/(temp_size-self.sheep_radius)-(1/(self.fi_r-self.sheep_radius)))
                     elif temp_size > self.fi_r and temp_size <= self.fi_g:
@@ -94,29 +106,25 @@ class SheepHeard:
                     elif temp_size > self.fi_d:
                         psi = 0
 
-                    v_si = psi*unit_vector(sheep-sheep_)
+                    v_si += psi*unit_vector(sheep-sheep_)
+
                 theta = self.ai * math.pi/180 * math.sin(self.wi*self.current_step*self.Ts)
-                c, s = np.cos(self.theta_r), np.sin(theta)
+                c, s = np.cos(theta), np.sin(theta)
                 R = np.array(((c, -s), (s, c)))
-                velocity_sheep = v_di +   v_si.dot(R)
+                velocity_sheep = v_di + R.dot(v_si)
+                if vector_size(self.Ts * velocity_sheep) > 50:
+                    print("!")
                 self.sheep_list[ii] = self.sheep_list[ii]+(self.Ts * velocity_sheep)
 
 
 
-            from matplotlib import pyplot as plt
-            plt.clf()
-            s = np.array(self.sheep_list)
-            plt.scatter(s[:, 0], s[:, 1],c='blue')
-            plt.scatter(self.dog_pos[0], self.dog_pos[1],c='red')
-            plt.scatter(self.goal[0], self.goal[1])
-            plt.xlim([0, 250])
-            plt.ylim([0, 350])
+
             visibilitiy = visible_sheep(self.dog_pos, self.dog_radius, self.goal, self.sheep_list)
             calculate_center_of_visible_sheep(self.sheep_list, visibilitiy)
 
             # left_most_visible_from_sheepfold(self.sheep_list, visibilitiy, self.goal)
             # right_most_visible_from_sheepfold(self.sheep_list, visibilitiy, self.goal)
-            plt.show(block=False)
+
 
 
 
