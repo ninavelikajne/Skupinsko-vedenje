@@ -15,14 +15,13 @@ class SheepHeard:
         self.vizualize = True
         self.lmbda=1
         self.dog_velocity = 0
-
         # Goal position
         self.goal = np.array([115, 300])
         # phi_o
         self.goal_radius = 45
 
         # dog starting position
-        self.dog_pos = np.array([0.0, 0.0])
+        self.dog_pos = np.array([63.0, 10.0])
         # phi_n
         self.dog_radius = 100
 
@@ -31,38 +30,91 @@ class SheepHeard:
 
         # sheep
         self.sheep_list = [np.array([57.0, 50.0]),np.array([44.0, 71.0]),np.array([59.0, 64.0]),np.array([73.0, 71.0]),np.array([78.0, 60.0]),np.array([82.0, 71.0]),np.array([87.0, 58.0])]
-        # self.sheep_list = np.array(self.sheep_list)
-        # self.sheep_list[:,0] += 10
-        # self.sheep_list[:,1] += 10
-        # self.sheep_list = list(self.sheep_list)
+        self.sheep_list = np.array(self.sheep_list)
+        self.sheep_list[:,0] += 20
+        self.sheep_list[:,1] += 20
+        self.sheep_list = list(self.sheep_list)
+        self.sheep_list+=[np.array([57.0, 50.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]), np.array([73.0, 71.0]),
+          np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
 
         # inter sheep distance phi_s
         self.sheep_radius = 5
 
-        # TODO other parameters
         self.ai = 0.1
         self.wi = 0.1
-        self.alpha = 7000
-        self.beta = 400
-        self.gama = 140
+        self.alpha = 9000
+        self.beta = 1400
+        self.gama = -10
+        self.zeta = 300
         self.fi_r = 15
         self.fi_g = 20
         self.fi_d = 30
         self.theta_t =  2*math.pi / 3
+        # possible error + -
         self.theta_l = math.pi/4
         self.theta_r = -math.pi/4
-        self.r_a = 50
-        self.gamma_a = 750
-        self.gamma_b = 575
+        self.r_a = 40
+        self.gamma_a = 450
+        self.gamma_b = 375
+
+        # self.N = sheepheard_size
+        # self.success = False
+        # self.max_steps = max_steps
+        # self.current_step = 0
+        # self.vizualize = True
+        # self.lmbda=1
+        # self.dog_velocity = 0
+        #
+        # # Goal position
+        # self.goal = np.array([115, 300])
+        # # phi_o
+        # self.goal_radius = 45
+        #
+        # # dog starting position
+        # self.dog_pos = np.array([10.0, 10.0])
+        # # phi_n
+        # self.dog_radius = 70
+        #
+        # # sampling period
+        # self.Ts = 0.001
+        #
+        # # sheep
+        # self.sheep_list = [np.array([57.0, 50.0]),np.array([44.0, 71.0]),np.array([59.0, 64.0]),np.array([73.0, 71.0]),np.array([78.0, 60.0]),np.array([82.0, 71.0]),np.array([87.0, 58.0])]
+        # self.sheep_list = np.array(self.sheep_list)
+        # self.sheep_list[:,0] += 20
+        # self.sheep_list[:,1] += 20
+        # self.sheep_list = list(self.sheep_list)
+        # self.sheep_list+=[np.array([57.0, 50.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]), np.array([73.0, 71.0]),
+        #  np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
+        #
+        # # inter sheep distance phi_s
+        # self.sheep_radius = 5
+        #
+        # self.ai = 0.1
+        # self.wi = 0.1
+        # self.alpha = 7000
+        # self.beta = 1400
+        # self.gama = -140
+        # self.fi_r = 15
+        # self.fi_g = 20
+        # self.fi_d = 30
+        # self.theta_t =  2*math.pi / 3
+        # self.theta_l = math.pi/4
+        # self.theta_r = -math.pi/4
+        # self.r_a = 50
+        # self.gamma_a = 750
+        # self.gamma_b = 575
 
 
     def run(self):
         """
             Runs the simulation of implemented sheepheard driven sheep transport
         """
-
+        i=0
         while (not self.success and self.current_step < self.max_steps):
             from matplotlib import pyplot as plt
+
+            # if i%10==0:
             plt.clf()
             s = np.array(self.sheep_list)
             plt.scatter(s[:, 0], s[:, 1], c='blue')
@@ -71,6 +123,8 @@ class SheepHeard:
             plt.xlim([0, 250])
             plt.ylim([0, 350])
             plt.show(block=False)
+
+            i+=1
             from matplotlib import pyplot as plt
             # plt.scatter()
             self.current_step += 1
@@ -92,19 +146,25 @@ class SheepHeard:
                     fi=0
 
                 v_di = fi*unit_vector(sheep-self.dog_pos)
+                # print(v_di)
                 v_si=0
                 for sheep_ in self.sheep_list:
                     if (sheep == sheep_).all():
                         continue
                     temp_size = vector_size(sheep_-sheep)
-                    if temp_size > self.sheep_radius and temp_size <= self.fi_r:
-                        psi = self.beta * (1/(temp_size-self.sheep_radius)-(1/(self.fi_r-self.sheep_radius)))
-                    elif temp_size > self.fi_r and temp_size <= self.fi_g:
+                    if temp_size < self.fi_r: #:
+                        psi=((self.fi_r-temp_size)/self.fi_r)*self.zeta
+                        # psi = self.beta * (1/(math.ceil(temp_size)-self.sheep_radius)-(1/(self.fi_r-self.sheep_radius)))
+
+                    elif temp_size >= self.fi_r and temp_size <= self.fi_g:
                         psi = 0
                     elif temp_size > self.fi_g and temp_size <= self.fi_d:
                         psi = self.gama*(temp_size-self.fi_g)
                     elif temp_size > self.fi_d:
                         psi = 0
+                    else:
+                        print("")
+                    # posiible error
 
                     v_si += psi*unit_vector(sheep-sheep_)
 

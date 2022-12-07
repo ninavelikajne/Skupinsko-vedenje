@@ -29,7 +29,7 @@ class SheepHeard:
         # TODO other parameters
         self.ai = 0.1
         self.wi = 0.1
-        self.alpha = 7000
+        self.alpha = 8000
         self.beta = 1400
         self.gama = 140
         self.fi_r = 15
