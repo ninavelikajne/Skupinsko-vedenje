@@ -9,6 +9,9 @@ def is_in_visible_area(dog, sheep, radius):
     distance = math.sqrt(math.pow(dog[0] - sheep[0], 2) + math.pow(dog[1]- sheep[1], 2))
     return distance < radius
 
+def calculate_angle_between_vectors(v1, v2):
+    return math.atan2(v1[0], v1[1]) - math.atan2(v2[0], v2[1])
+
 def all_on_left(dog_pos, goal_pos, sheeps):
     dog_goal_vector = unit_vector(goal_pos-dog_pos)
     for sheep_pos in sheeps:
@@ -175,6 +178,17 @@ def visible_sheep(dog_pos, dog_radius, goal, sheeps):
 
     return visibility
 
+def is_line_intersecting_circle(velocity_vector, obstacle_sheep_vector, r):
+    a = np.dot(velocity_vector, velocity_vector)
+    b = 2 * np.dot(obstacle_sheep_vector, velocity_vector)
+    c = np.dot(obstacle_sheep_vector, obstacle_sheep_vector) - r * r
+
+    discriminant = b * b - 4 * a * c
+    if discriminant < 0:
+        # no intersection
+        return False
+    else:
+        return True
 
 def unit_vector(vector):
     return vector / np.linalg.norm(vector)
