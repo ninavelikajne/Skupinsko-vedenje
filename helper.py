@@ -178,6 +178,15 @@ def visible_sheep(dog_pos, dog_radius, goal, sheeps):
 
     return visibility
 
+def distance_between_line_and_dot(line_vector, dot):
+  # Use the dot product to find the orthogonal projection of the dot onto the line
+  projection = np.dot(line_vector, dot) / np.dot(line_vector, line_vector) * line_vector
+
+  # Calculate the distance between the orthogonal projection and the dot
+  distance = np.linalg.norm(projection - dot)
+
+  return distance
+
 def is_line_intersecting_circle(velocity_vector, obstacle_sheep_vector, r):
     a = np.dot(velocity_vector, velocity_vector)
     b = 2 * np.dot(obstacle_sheep_vector, velocity_vector)

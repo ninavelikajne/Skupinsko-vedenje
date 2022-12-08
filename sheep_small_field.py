@@ -13,7 +13,8 @@ class SheepHeard:
         self.max_steps = max_steps
         self.current_step = 0
         self.vizualize = True
-        self.lmbda=1
+        self.lmbda1=1
+        self.lmbda=0
         self.dog_velocity = 0
         # Goal position
         self.goal = np.array([115, 300])
@@ -21,7 +22,8 @@ class SheepHeard:
         self.goal_radius = 45
 
         # dog starting position
-        self.dog_pos = np.array([63.0, 10.0])
+        self.dog_pos = np.array([100.0, 50.0])
+        self.dog_pos1 = np.array([50.0, 50.0])
         # phi_n
         self.dog_radius = 100
 
@@ -124,95 +126,95 @@ class SheepHeard:
             s = np.array(self.sheep_list)
             plt.scatter(s[:, 0], s[:, 1], c='blue')
             plt.scatter(self.dog_pos[0], self.dog_pos[1], c='red')
+            plt.scatter(self.dog_pos1[0], self.dog_pos1[1], c='orange')
             # TODO remove static
             plt.scatter(self.goal[0], self.goal[1])
             plt.scatter(self.obstacles[0][0],self.obstacles[0][1])
-            # plt.xlim([0, 250])
-            plt.xlim([50, 150])
-            # plt.ylim([0, 350])
-            plt.ylim([150, 250])
+            plt.xlim([0, 250])
+            # plt.xlim([50, 150])
+            plt.ylim([0, 350])
+            # plt.ylim([150, 250])
             plt.show(block=False)
 
             i+=1
-            from matplotlib import pyplot as plt
-            # plt.scatter()
+
             self.current_step += 1
-            # u(current_step)
-            self.calculate_dog_velocity()
-            # print(self.dog_velocity)
-            # print(self.dog_velocity)
-            visibilitiy=visible_sheep(self.dog_pos,self.dog_radius, self.goal,self.sheep_list)
-            # right_most_visible_from_dog(self.sheep_list, visibilitiy, self.dog_pos)
+
+            self.dog_velocity =self.calculate_dog_velocity(self.dog_pos,self.dog_pos1)
+            self.dog_velocity1 =self.calculate_dog_velocity(self.dog_pos1,self.dog_pos)
+
+
             self.dog_pos = self.dog_pos+self.Ts * self.dog_velocity
+            self.dog_pos1 = self.dog_pos1+self.Ts * self.dog_velocity1
+            for dog in [self.dog_pos1, self.dog_pos]:
+                for ii, sheep in enumerate(self.sheep_list):
+                    # if (she<ep == [70.45771376, 57.77143582]).all():
+                    #     print("!")
+                    x=vector_size(sheep-dog)
+                    if x>0 and x<=self.dog_radius:
+                        fi =self.alpha* (1/x - 1/self.dog_radius)
+                    else:
+                        fi=0
 
-            for ii, sheep in enumerate(self.sheep_list):
-                # if (she<ep == [70.45771376, 57.77143582]).all():
-                #     print("!")
-                x=vector_size(sheep-self.dog_pos)
-                if x>0 and x<=self.dog_radius:
-                    fi =self.alpha* (1/x - 1/self.dog_radius)
-                else:
-                    fi=0
-
-                v_di = fi*unit_vector(sheep-self.dog_pos)
-                # print(v_di)
-                v_si=0
-                for sheep_ in self.sheep_list:
-                    #
-                    if (sheep == sheep_).all():
-                        continue
-                    temp_size = vector_size(sheep_-sheep)
-                    if temp_size < self.fi_r: #:
-                        psi=((self.fi_r-temp_size)/self.fi_r)*self.zeta
-                        # psi = self.beta * (1/(math.ceil(temp_size)-self.sheep_radius)-(1/(self.fi_r-self.sheep_radius)))
-
-                    elif temp_size >= self.fi_r and temp_size <= self.fi_g:
-                        psi = 0
-                    elif temp_size > self.fi_g and temp_size <= self.fi_d:
-                        psi = self.gama*(temp_size-self.fi_g)
-                    elif temp_size > self.fi_d:
-                        psi = 0
-
-                    v_si += psi*unit_vector(sheep-sheep_)
-
-
-
-
-                theta = self.ai * math.pi/180 * math.sin(self.wi*self.current_step*self.Ts)
-                c, s = np.cos(theta), np.sin(theta)
-                R = np.array(((c, -s), (s, c)))
-                velocity_sheep = v_di + R.dot(v_si)
-
-                # obstacle avoidance
-                for obstacle in self.obstacles:
-                    obstacle_sheep_dist = vector_size(obstacle-sheep)
-                    if obstacle_sheep_dist < self.obstacle_effect_radius and \
-                        is_line_intersecting_circle(velocity_sheep, sheep-obstacle, self.obstacle_radius):
-                        # plt.scatter(sheep[0], sheep[1])
-                        # s = sheep + velocity_sheep
-                        # plt.scatter(s[0], s[1])
-                        angle = calculate_angle_between_vectors(obstacle - sheep, velocity_sheep)
-                        if math.fabs(angle) > math.pi/3:
+                    v_di = fi*unit_vector(sheep-dog)
+                    # print(v_di)
+                    v_si=0
+                    for sheep_ in self.sheep_list:
+                        #
+                        if (sheep == sheep_).all():
                             continue
-                        angle_corr = (obstacle_sheep_dist / self.obstacle_effect_radius) * 3 + 0.7
-                        if angle < 0:
-                            # go to right
-                            c, s = np.cos(self.theta_r/angle_corr), np.sin(self.theta_r/angle_corr)
-                            R = np.array(((c, -s), (s, c)))
-                            # mnozenje matrike z vektorjem
-                            velocity_sheep = np.array(R).dot(velocity_sheep)
-                        else:
-                            # go to left
-                            c, s = np.cos(self.theta_l/angle_corr), np.sin(self.theta_l/angle_corr)
-                            R = np.array(((c, -s), (s, c)))
-                            # mnozenje matrike z vektorjem
-                            velocity_sheep = np.array(R).dot(velocity_sheep)
+                        temp_size = vector_size(sheep_-sheep)
+                        if temp_size < self.fi_r: #:
+                            psi=((self.fi_r-temp_size)/self.fi_r)*self.zeta
+                            # psi = self.beta * (1/(math.ceil(temp_size)-self.sheep_radius)-(1/(self.fi_r-self.sheep_radius)))
+
+                        elif temp_size >= self.fi_r and temp_size <= self.fi_g:
+                            psi = 0
+                        elif temp_size > self.fi_g and temp_size <= self.fi_d:
+                            psi = self.gama*(temp_size-self.fi_g)
+                        elif temp_size > self.fi_d:
+                            psi = 0
+
+                        v_si += psi*unit_vector(sheep-sheep_)
+
+
+
+
+                    theta = self.ai * math.pi/180 * math.sin(self.wi*self.current_step*self.Ts)
+                    c, s = np.cos(theta), np.sin(theta)
+                    R = np.array(((c, -s), (s, c)))
+                    velocity_sheep = v_di + R.dot(v_si)
+
+                    # obstacle avoidance
+                    for obstacle in self.obstacles:
+                        obstacle_sheep_dist = vector_size(obstacle-sheep)
+                        if obstacle_sheep_dist < self.obstacle_effect_radius and \
+                            is_line_intersecting_circle(velocity_sheep, sheep-obstacle, self.obstacle_radius):
+                            # plt.scatter(sheep[0], sheep[1])
+                            # s = sheep + velocity_sheep
+                            # plt.scatter(s[0], s[1])
+                            angle = calculate_angle_between_vectors(obstacle - sheep, velocity_sheep)
+                            if math.fabs(angle) > math.pi/3:
+                                continue
+                            angle_corr = (obstacle_sheep_dist / self.obstacle_effect_radius) * 3 + 0.7
+                            if angle < 0:
+                                # go to right
+                                c, s = np.cos(self.theta_r/angle_corr), np.sin(self.theta_r/angle_corr)
+                                R = np.array(((c, -s), (s, c)))
+                                # mnozenje matrike z vektorjem
+                                velocity_sheep = np.array(R).dot(velocity_sheep)
+                            else:
+                                # go to left
+                                c, s = np.cos(self.theta_l/angle_corr), np.sin(self.theta_l/angle_corr)
+                                R = np.array(((c, -s), (s, c)))
+                                # mnozenje matrike z vektorjem
+                                velocity_sheep = np.array(R).dot(velocity_sheep)
 
 
 
 
 
-                self.sheep_list[ii] = self.sheep_list[ii]+(self.Ts * velocity_sheep)
+                    self.sheep_list[ii] = self.sheep_list[ii]+(self.Ts/2 * velocity_sheep)
 
 
 
@@ -227,82 +229,135 @@ class SheepHeard:
 
 
 
-    def calculate_dog_velocity(self):
+    def calculate_dog_velocity(self, dog_pos, other_dog):
         sheep_at_goal = 0
         for sheep_location in self.sheep_list:
             if is_in_goal_area(sheep_location, self.goal, self.goal_radius):
                 sheep_at_goal += 1
 
         if sheep_at_goal < self.N:
-            if all_on_right(self.dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal, self.dog_radius, 'left', self.dog_pos) > self.theta_t:
-                self.lmbda=0
-                # TODO visibility smo že zračunali
-                temp =((right_most_visible_from_dog(self.sheep_list,
-                                                                        visible_sheep(self.dog_pos, self.dog_radius,
-                                                                                      self.goal, self.sheep_list), self.goal))-self.dog_pos)
-                if vector_size(temp) >= self.r_a:
-                    self.dog_velocity = self.gamma_a * unit_vector(temp)
+            visibility =visible_sheep(dog_pos, self.dog_radius, self.goal, self.sheep_list)
+            center_of_visible_sheep =  calculate_center_of_visible_sheep(self.sheep_list, visibility)
+            plt.scatter(center_of_visible_sheep[0], center_of_visible_sheep[1], color='green')
+            angle = calculate_angle_between_vectors(center_of_visible_sheep-dog_pos, other_dog-dog_pos)
+            print(angle)
+            # right dog
+            if angle > 0:
+                center_of_mass_goal_vector = center_of_visible_sheep-self.goal
+                dist = np.linalg.norm(np.cross(center_of_visible_sheep-self.goal, self.goal-dog_pos)/np.linalg.norm(center_of_visible_sheep-self.goal))
+                if dist < 5:
+                    self.lmbda1=0
+
+                    temp =((right_most_visible_from_dog(self.sheep_list, visibility, self.goal))-self.dog_pos)
+                    if vector_size(temp) >= self.r_a:
+                        dog_velocity = self.gamma_a * unit_vector(temp)
+                    else:
+                        c,s = np.cos(self.theta_r), np.sin(self.theta_r)
+                        R = np.array(((c,-s), (s, c)))
+                        # mnozenje matrike z vektorjem
+                        dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
+
+                elif all_on_left(dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal, self.dog_radius, 'right', self.dog_pos) > self.theta_t:
+                    self.lmbda1=1
+
+                    temp =((left_most_visible_from_dog(self.sheep_list,
+                                                                            visibility, self.goal))-self.dog_pos)
+
+
+                    if vector_size(temp) >= self.r_a:
+                        dog_velocity = self.gamma_a * unit_vector(temp)
+                    else:
+                        c, s = np.cos(self.theta_l), np.sin(self.theta_l)
+                        R = np.array(((c, -s), (s, c)))
+                        # mnozenje matrike z vektorjem
+                        dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
+
+                elif self.lmbda1 == 1:
+                    temp = (( left_most_visible_from_dog(self.sheep_list,   visibility, self.goal))-self.dog_pos)
+
+                    if vector_size(temp) >= self.r_a:
+                        dog_velocity = self.gamma_a * unit_vector(temp)
+                    else:
+                        c, s = np.cos(self.theta_l), np.sin(self.theta_l)
+                        R = np.array(((c, -s), (s, c)))
+                        # mnozenje matrike z vektorjem
+                        dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
                 else:
-                    c,s = np.cos(self.theta_r), np.sin(self.theta_r)
-                    R = np.array(((c,-s), (s, c)))
-                    # mnozenje matrike z vektorjem
-                    self.dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
-
-            elif all_on_left(self.dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal, self.dog_radius, 'right', self.dog_pos) > self.theta_t:
-                self.lmbda=1
-                # TODO visibility smo že zračunali
-                temp =((left_most_visible_from_dog(self.sheep_list,
-                                                                        visible_sheep(self.dog_pos, self.dog_radius,
-                                                                                      self.goal, self.sheep_list), self.goal))-self.dog_pos)
-
-
-                if vector_size(temp) >= self.r_a:
-                    self.dog_velocity = self.gamma_a * unit_vector(temp)
-                else:
-                    c, s = np.cos(self.theta_l), np.sin(self.theta_l)
-                    R = np.array(((c, -s), (s, c)))
-                    # mnozenje matrike z vektorjem
-                    self.dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
-
-            elif self.lmbda == 1:
-                temp = (( left_most_visible_from_dog(self.sheep_list,   visible_sheep(self.dog_pos,
-                                                                                                  self.dog_radius,
-                                                                                                  self.goal,
-                                                                                                  self.sheep_list), self.goal))-self.dog_pos)
-
-                if vector_size(temp) >= self.r_a:
-                    self.dog_velocity = self.gamma_a * unit_vector(temp)
-                else:
-                    c, s = np.cos(self.theta_l), np.sin(self.theta_l)
-                    R = np.array(((c, -s), (s, c)))
-                    # mnozenje matrike z vektorjem
-                    self.dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
+                    temp = ((right_most_visible_from_dog(self.sheep_list,
+                                                                                visibility, self.goal))-self.dog_pos)
+                    if vector_size(temp) >= self.r_a:
+                        dog_velocity = self.gamma_a * unit_vector(temp)
+                    else:
+                        c, s = np.cos(self.theta_r), np.sin(self.theta_r)
+                        R = np.array(((c, -s), (s, c)))
+                        # mnozenje matrike z vektorjem
+                        dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
+            # left dog
             else:
-                temp = ((right_most_visible_from_dog(self.sheep_list,
-                                                                               visible_sheep(self.dog_pos,
-                                                                                             self.dog_radius,
-                                                                                             self.goal,
-                                                                                             self.sheep_list), self.goal))-self.dog_pos)
-                if vector_size(temp) >= self.r_a:
-                    self.dog_velocity = self.gamma_a * unit_vector(temp)
+                center_of_mass_goal_vector = center_of_visible_sheep - self.goal
+                dist = np.linalg.norm(np.cross(center_of_visible_sheep-self.goal, self.goal-dog_pos)/np.linalg.norm(center_of_visible_sheep-self.goal))
+
+                if all_on_right(dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal,
+                                                                                     self.dog_radius, 'right',
+                                                                                     self.dog_pos) > self.theta_t:
+                    self.lmbda = 0
+
+                    temp = ((right_most_visible_from_dog(self.sheep_list, visibility, self.goal)) - self.dog_pos)
+                    if vector_size(temp) >= self.r_a:
+                        dog_velocity = self.gamma_a * unit_vector(temp)
+                    else:
+                        c, s = np.cos(self.theta_r), np.sin(self.theta_r)
+                        R = np.array(((c, -s), (s, c)))
+                        # mnozenje matrike z vektorjem
+                        dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
+
+                if dist < 5:
+                    self.lmbda = 1
+
+                    temp = ((left_most_visible_from_dog(self.sheep_list,
+                                                        visibility, self.goal)) - self.dog_pos)
+
+                    if vector_size(temp) >= self.r_a:
+                        dog_velocity = self.gamma_a * unit_vector(temp)
+                    else:
+                        c, s = np.cos(self.theta_l), np.sin(self.theta_l)
+                        R = np.array(((c, -s), (s, c)))
+                        # mnozenje matrike z vektorjem
+                        dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
+
+                elif self.lmbda == 1:
+                    temp = ((left_most_visible_from_dog(self.sheep_list, visibility, self.goal)) - self.dog_pos)
+
+                    if vector_size(temp) >= self.r_a:
+                        dog_velocity = self.gamma_a * unit_vector(temp)
+                    else:
+                        c, s = np.cos(self.theta_l), np.sin(self.theta_l)
+                        R = np.array(((c, -s), (s, c)))
+                        # mnozenje matrike z vektorjem
+                        dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
                 else:
-                    c, s = np.cos(self.theta_r), np.sin(self.theta_r)
-                    R = np.array(((c, -s), (s, c)))
-                    # mnozenje matrike z vektorjem
-                    self.dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
+                    temp = ((right_most_visible_from_dog(self.sheep_list,
+                                                         visibility, self.goal)) - self.dog_pos)
+                    if vector_size(temp) >= self.r_a:
+                        dog_velocity = self.gamma_a * unit_vector(temp)
+                    else:
+                        c, s = np.cos(self.theta_r), np.sin(self.theta_r)
+                        R = np.array(((c, -s), (s, c)))
+                        # mnozenje matrike z vektorjem
+                        dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
 
 
         else:
-            self.dog_velocity=0
+            dog_velocity=0
 
         for obstacle in self.obstacles:
-            obstacle_sheep_dist = vector_size(obstacle - self.dog_pos)
+            obstacle_sheep_dist = vector_size(obstacle - dog_pos)
             if obstacle_sheep_dist < self.obstacle_effect_radius and \
-                    is_line_intersecting_circle(self.dog_velocity, self.dog_pos - obstacle, self.obstacle_radius):
+                    is_line_intersecting_circle(self.dog_velocity, dog_pos - obstacle, self.obstacle_radius):
                 # plt.scatter(sheep[0], sheep[1])
                 # s = sheep + velocity_sheep
                 # plt.scatter(s[0], s[1])
-                angle = calculate_angle_between_vectors(obstacle - self.dog_pos, self.dog_velocity)
+                angle = calculate_angle_between_vectors(obstacle - dog_pos, self.dog_velocity)
                 if math.fabs(angle) > math.pi / 3:
                     continue
                 angle_corr = (obstacle_sheep_dist / self.obstacle_effect_radius) * 3 + 1
@@ -311,13 +366,14 @@ class SheepHeard:
                     c, s = np.cos(self.theta_r / angle_corr), np.sin(self.theta_r / angle_corr)
                     R = np.array(((c, -s), (s, c)))
                     # mnozenje matrike z vektorjem
-                    self.dog_velocity = np.array(R).dot(self.dog_velocity)
+                    dog_velocity = np.array(R).dot(self.dog_velocity)
                 else:
                     # go to left
                     c, s = np.cos(self.theta_l / angle_corr), np.sin(self.theta_l / angle_corr)
                     R = np.array(((c, -s), (s, c)))
                     # mnozenje matrike z vektorjem
-                    self.dog_velocity = np.array(R).dot(self.dog_velocity)
+                    dog_velocity = np.array(R).dot(self.dog_velocity)
+        return dog_velocity
 
 
 
