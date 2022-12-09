@@ -13,7 +13,7 @@ class SheepHeard:
         self.max_steps = max_steps
         self.current_step = 0
         self.vizualize = True
-        self.lmbda = 0 # todo 1
+        self.lmbda = 0
         self.dog_velocity = np.array([0,0])
         # Goal position
         self.goal = np.array([115, 300])
@@ -262,7 +262,7 @@ class SheepHeard:
 
         else:
             self.dog_velocity = np.array([0,0])
-            self.success=True
+            self.max_steps = self.current_step + 3
 
         for obstacle in self.obstacles:
             obstacle_sheep_dist = vector_size(obstacle - self.dog_pos)
