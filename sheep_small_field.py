@@ -14,7 +14,7 @@ class SheepHeard:
         self.current_step = 0
         self.vizualize = True
         self.lmbda = 1
-        self.dog_velocity = 0
+        self.dog_velocity = np.array([0,0])
         # Goal position
         self.goal = np.array([115, 300])
         # phi_o
@@ -33,48 +33,37 @@ class SheepHeard:
         self.Ts = 0.01
 
         # sheep
-        self.sheep_list = [np.array([57.0, 50.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
+        self.sheep_list = [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
                            np.array([73.0, 71.0]), np.array([78.0, 60.0]), np.array([82.0, 71.0]),
                            np.array([87.0, 58.0])]
         self.sheep_list = np.array(self.sheep_list)
         self.sheep_list[:, 0] += 20
         self.sheep_list[:, 1] += 20
         self.sheep_list = list(self.sheep_list)
-        a= [np.array([57.0, 50.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
+        self.sheep_list += [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
                             np.array([73.0, 71.0]),
                             np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
-        a = np.array(a)
-        a[:, 0] += 10
-        a[:, 1] += 10
-        a = list(a)
-        self.sheep_list += a
-        a = [np.array([57.0, 50.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
-             np.array([73.0, 71.0]),
-             np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
-        a = np.array(a)
-        a[:, 0] += 20
-        a[:, 1] += 20
-        a = list(a)
-        self.sheep_list += a
-        a = [np.array([57.0, 50.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
-             np.array([73.0, 71.0]),
-             np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
-        a = np.array(a)
-        a[:, 0] += 15
-        a[:, 1] += 15
-        a = list(a)
-        self.sheep_list += a
-        a = [np.array([57.0, 50.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
-             np.array([73.0, 71.0]),
-             np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
-        a = np.array(a)
-        a[:, 0] += 17
-        a[:, 1] += 17
-        a = list(a)
-        self.sheep_list += a
+        self.sheep_list = np.array(self.sheep_list)
+        self.sheep_list[:, 1] += 20
+        self.sheep_list = list(self.sheep_list)
+        self.sheep_list += [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
+                            np.array([73.0, 71.0]),
+                            np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
+        self.sheep_list = np.array(self.sheep_list)
+        self.sheep_list[:, 0] += 10
+        self.sheep_list = list(self.sheep_list)
+        self.sheep_list += [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
+                            np.array([73.0, 71.0]),
+                            np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
+        self.sheep_list = np.array(self.sheep_list)
+        self.sheep_list[:, 0] += 10
+        self.sheep_list = list(self.sheep_list)
+        self.sheep_list += [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
+                            np.array([73.0, 71.0]),
+                            np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
 
 
-        self.obstacles = [] # [np.array([100,200]), np.array([-1000,-1000])]
+        self.obstacles =  [np.array([100,200])]
 
         # inter sheep distance phi_s
         self.sheep_radius = 5
@@ -161,15 +150,15 @@ class SheepHeard:
             for obstacle in self.obstacles:
                 plt.scatter(obstacle[0], obstacle[1], c='green')
 
-            visibility = visible_sheep(self.dog_pos, self.dog_radius,
-                                       self.goal, self.sheep_list)
-
-            right = (right_most_visible_from_dog(self.sheep_list, visibility
-                                                 , self.dog_pos))
-            left = (left_most_visible_from_dog(self.sheep_list, visibility
-                                               , self.dog_pos))
-            plt.scatter(right[0], right[1], c='orange')
-            plt.scatter(left[0], left[1], c='green')
+            # visibility = visible_sheep(self.dog_pos, self.dog_radius,
+            #                            self.goal, self.sheep_list)
+            #
+            # right = (right_most_visible_from_dog(self.sheep_list, visibility
+            #                                      , self.dog_pos))
+            # left = (left_most_visible_from_dog(self.sheep_list, visibility
+            #                                    , self.dog_pos))
+            # plt.scatter(right[0], right[1], c='orange')
+            # plt.scatter(left[0], left[1], c='green')
 
             plt.xlim([0, 250])
             #plt.xlim([50, 150])
@@ -229,8 +218,7 @@ class SheepHeard:
                 # obstacle avoidance
                 for obstacle in self.obstacles:
                     obstacle_sheep_dist = vector_size(obstacle - sheep)
-                    if obstacle_sheep_dist < self.obstacle_effect_radius and \
-                            is_line_intersecting_circle(velocity_sheep, sheep - obstacle, self.obstacle_radius):
+                    if obstacle_sheep_dist < self.obstacle_effect_radius and is_line_intersecting_circle(velocity_sheep, sheep - obstacle, self.obstacle_radius):
                         # plt.scatter(sheep[0], sheep[1])
                         # s = sheep + velocity_sheep
                         # plt.scatter(s[0], s[1])
@@ -244,12 +232,14 @@ class SheepHeard:
                             R = np.array(((c, -s), (s, c)))
                             # mnozenje matrike z vektorjem
                             velocity_sheep = np.array(R).dot(velocity_sheep)
+
                         else:
                             # go to left
                             c, s = np.cos(self.theta_l / angle_corr), np.sin(self.theta_l / angle_corr)
                             R = np.array(((c, -s), (s, c)))
                             # mnozenje matrike z vektorjem
                             velocity_sheep = np.array(R).dot(velocity_sheep)
+
 
                 self.sheep_list[ii] = self.sheep_list[ii] + (self.Ts * velocity_sheep)
 
@@ -321,12 +311,12 @@ class SheepHeard:
 
 
         else:
-            self.dog_velocity = 0
+            self.dog_velocity = np.array([0,0])
+            self.success=True
 
         for obstacle in self.obstacles:
             obstacle_sheep_dist = vector_size(obstacle - self.dog_pos)
-            if obstacle_sheep_dist < self.obstacle_effect_radius and \
-                    is_line_intersecting_circle(self.dog_velocity, self.dog_pos - obstacle, self.obstacle_radius):
+            if obstacle_sheep_dist < self.obstacle_effect_radius and is_line_intersecting_circle(self.dog_velocity, self.dog_pos - obstacle, self.obstacle_radius):
                 # plt.scatter(sheep[0], sheep[1])
                 # s = sheep + velocity_sheep
                 # plt.scatter(s[0], s[1])
