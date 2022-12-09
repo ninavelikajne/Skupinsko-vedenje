@@ -4,7 +4,7 @@ from helper import *
 
 
 class SheepHeard:
-    def __init__(self, sheepheard_size=24, max_steps=50000):
+    def __init__(self, sheepheard_size=24, max_steps=5000000):
         self.N = sheepheard_size
         self.success = False
         self.max_steps = max_steps
@@ -25,11 +25,11 @@ class SheepHeard:
         self.dog_radius = 100
 
         # obstacle avoidance
-        self.obstacle_radius = 20
-        self.obstacle_effect_radius = 50
+        self.obstacle_radius = 10
+        self.obstacle_effect_radius = 20
 
         # sampling period
-        self.Ts = 0.0001
+        self.Ts = 0.001
 
         # sheep
         self.sheep_list = []
@@ -46,12 +46,12 @@ class SheepHeard:
         # for i in range(self.N):
         #     self.sheep_list.append(np.array([random.random()*xsize+xstart, random.random()*ysize+ystart]))
 
-        a = np.linspace(0, 2 * np.pi, 50)
-        radius = 5
+        a = np.linspace(0, 2 * np.pi, 20)
+        radius = 2
         x = radius * np.cos(a) + 100
         y = radius * np.sin(a) + 200
 
-        self.obstacles = []  # [np.array([x[i], y[i]]) for i in range(50)]
+        self.obstacles = [np.array([x[i], y[i]]) for i in range(20)]
         # inter sheep distance phi_s
         self.sheep_radius = 5
 
@@ -79,7 +79,8 @@ class SheepHeard:
         i = 0
         while (not self.success and self.current_step < self.max_steps):
 
-            if i % 100 == 0:
+
+            if i % 10 == 0:
 
                 fig = plt.figure(figsize=(7, 7))
                 ax = fig.subplots()
@@ -90,7 +91,7 @@ class SheepHeard:
                 circle = plt.Circle((self.goal[0], self.goal[1]), self.goal_radius, alpha=0.3, color='green')
                 ax.add_artist(circle)
                 for o in self.obstacles:
-                    plt.scatter(o[0], o[1], c='green')
+                    plt.scatter(o[0], o[1], c='black')
 
                 ax.set_xlim([0, 350])
                 ax.set_ylim([0, 350])
@@ -167,8 +168,6 @@ class SheepHeard:
 
                     self.sheep_list[ii] = self.sheep_list[ii] + (self.Ts / 2 * velocity_sheep)
 
-            visibilitiy = visible_sheep(self.dog_pos, self.dog_radius, self.goal, self.sheep_list)
-            calculate_center_of_visible_sheep(self.sheep_list, visibilitiy)
 
     def calculate_dog_velocity(self, dog_pos, other_dog):
         sheep_at_goal = 0
@@ -298,10 +297,10 @@ class SheepHeard:
                     # go to right
                     c, s = np.cos(self.theta_r / angle_corr), np.sin(self.theta_r / angle_corr)
                     R = np.array(((c, -s), (s, c)))
-                    dog_velocity = np.array(R).dot(self.dog_velocity)
+                    dog_velocity = np.array(R).dot(dog_velocity)
                 else:
                     # go to left
                     c, s = np.cos(self.theta_l / angle_corr), np.sin(self.theta_l / angle_corr)
                     R = np.array(((c, -s), (s, c)))
-                    dog_velocity = np.array(R).dot(self.dog_velocity)
+                    dog_velocity = np.array(R).dot(dog_velocity)
         return dog_velocity
