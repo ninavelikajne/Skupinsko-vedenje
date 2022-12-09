@@ -3,7 +3,6 @@ from sheepheard import SheepHeard
 import cv2
 import os
 
-
 # clear figs
 folder = 'figs'
 for filename in os.listdir(folder):
@@ -16,11 +15,9 @@ for filename in os.listdir(folder):
     except Exception as e:
         print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-
 # run sheep
-s=SheepHeard(sheepheard_size=40,max_steps=4000)
+s = SheepHeard(sheepheard_size=40, max_steps=4000)
 s.run()
-
 
 # plot
 image_folder = './figs'
@@ -30,11 +27,10 @@ images = sorted([img for img in os.listdir(image_folder) if img.endswith(".png")
 frame = cv2.imread(os.path.join(image_folder, images[0]))
 height, width, layers = frame.shape
 
-video = cv2.VideoWriter(video_name, 0, 10, (width,height))
+video = cv2.VideoWriter(video_name, 0, 10, (width, height))
 
 for image in images:
     video.write(cv2.imread(os.path.join(image_folder, image)))
-
 
 cv2.destroyAllWindows()
 video.release()

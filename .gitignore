@@ -1,3 +1,4 @@
 .idea
 figs
 **/*.avi
+__pycache__

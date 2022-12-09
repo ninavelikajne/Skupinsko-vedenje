@@ -14,7 +14,7 @@ class SheepHeard:
         self.current_step = 0
         self.vizualize = True
         self.lmbda = 0
-        self.dog_velocity = np.array([0,0])
+        self.dog_velocity = np.array([0, 0])
         # Goal position
         self.goal = np.array([115, 300])
         # phi_o
@@ -76,7 +76,7 @@ class SheepHeard:
         # obstacle avoidance
         self.obstacle_radius = 20
         self.obstacle_effect_radius = 50
-        self.obstacles = []#[np.array([100,200])]
+        self.obstacles = []  # [np.array([100,200])]
 
         # inter sheep distance phi_s
         self.sheep_radius = 5
@@ -132,7 +132,6 @@ class SheepHeard:
             fig.savefig("./figs/" + str(str(i).zfill(3)))
             plt.close()
 
-
             i += 1
             self.current_step += 1
             self.calculate_dog_velocity()
@@ -173,7 +172,9 @@ class SheepHeard:
                 # obstacle avoidance
                 for obstacle in self.obstacles:
                     obstacle_sheep_dist = vector_size(obstacle - sheep)
-                    if obstacle_sheep_dist < self.obstacle_effect_radius and is_line_intersecting_circle(velocity_sheep, sheep - obstacle, self.obstacle_radius):
+                    if obstacle_sheep_dist < self.obstacle_effect_radius and is_line_intersecting_circle(velocity_sheep,
+                                                                                                         sheep - obstacle,
+                                                                                                         self.obstacle_radius):
                         angle = calculate_angle_between_vectors(obstacle - sheep, velocity_sheep)
                         if math.fabs(angle) > math.pi / 3:
                             continue
@@ -192,12 +193,10 @@ class SheepHeard:
                             # mnozenje matrike z vektorjem
                             velocity_sheep = np.array(R).dot(velocity_sheep)
 
-
                 self.sheep_list[ii] = self.sheep_list[ii] + (self.Ts * velocity_sheep)
 
             visibilitiy = visible_sheep(self.dog_pos, self.dog_radius, self.goal, self.sheep_list)
             calculate_center_of_visible_sheep(self.sheep_list, visibilitiy)
-
 
     def calculate_dog_velocity(self):
         sheep_at_goal = 0
@@ -209,11 +208,10 @@ class SheepHeard:
             visibility = visible_sheep(self.dog_pos, self.dog_radius,
                                        self.goal, self.sheep_list)
 
-
             if all_on_right(self.dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal,
                                                                                       self.dog_radius, 'left',
                                                                                       self.dog_pos) > self.theta_t:
-                self.lmbda =0
+                self.lmbda = 0
                 temp = ((right_most_visible_from_dog(self.sheep_list, visibility
                                                      , self.dog_pos)) - self.dog_pos)
                 if vector_size(temp) >= self.r_a:
@@ -261,12 +259,14 @@ class SheepHeard:
 
 
         else:
-            self.dog_velocity = np.array([0,0])
+            self.dog_velocity = np.array([0, 0])
             self.max_steps = self.current_step + 3
 
         for obstacle in self.obstacles:
             obstacle_sheep_dist = vector_size(obstacle - self.dog_pos)
-            if obstacle_sheep_dist < self.obstacle_effect_radius and is_line_intersecting_circle(self.dog_velocity, self.dog_pos - obstacle, self.obstacle_radius):
+            if obstacle_sheep_dist < self.obstacle_effect_radius and is_line_intersecting_circle(self.dog_velocity,
+                                                                                                 self.dog_pos - obstacle,
+                                                                                                 self.obstacle_radius):
                 angle = calculate_angle_between_vectors(obstacle - self.dog_pos, self.dog_velocity)
                 if math.fabs(angle) > math.pi / 3:
                     continue
