@@ -48,10 +48,13 @@ class SheepHeard:
 
         a = np.linspace(0, 2 * np.pi, 20)
         radius = 2
+        x = radius * np.cos(a) + 70
+        y = radius * np.sin(a) + 100
+        self.obstacles = [np.array([x[i], y[i]]) for i in range(20)]
+        radius = 3
         x = radius * np.cos(a) + 100
         y = radius * np.sin(a) + 200
-
-        self.obstacles = [np.array([x[i], y[i]]) for i in range(20)]
+        self.obstacles += [np.array([x[i], y[i]]) for i in range(20)]
         # inter sheep distance phi_s
         self.sheep_radius = 5
 
@@ -188,7 +191,7 @@ class SheepHeard:
                 if dist < 5:
                     self.lmbda1 = 0
 
-                    temp = ((right_most_visible_from_dog(self.sheep_list, visibility, dog_pos)) - self.dog_pos)
+                    temp = ((right_most_visible_from_dog(self.sheep_list, visibility, dog_pos)) - dog_pos)
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
                     else:
@@ -198,11 +201,11 @@ class SheepHeard:
 
                 elif all_on_left(dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal,
                                                                                       self.dog_radius, 'right',
-                                                                                      self.dog_pos) > self.theta_t:
+                                                                                      dog_pos) > self.theta_t:
                     self.lmbda1 = 1
 
                     temp = ((left_most_visible_from_dog(self.sheep_list,
-                                                        visibility, dog_pos)) - self.dog_pos)
+                                                        visibility, dog_pos)) - dog_pos)
 
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
@@ -287,9 +290,9 @@ class SheepHeard:
         for obstacle in self.obstacles:
             obstacle_sheep_dist = vector_size(obstacle - dog_pos)
             if obstacle_sheep_dist < self.obstacle_effect_radius and \
-                    is_line_intersecting_circle(self.dog_velocity, dog_pos - obstacle, self.obstacle_radius):
+                    is_line_intersecting_circle(dog_velocity, dog_pos - obstacle, self.obstacle_radius):
 
-                angle = calculate_angle_between_vectors(obstacle - dog_pos, self.dog_velocity)
+                angle = calculate_angle_between_vectors(obstacle - dog_pos, dog_velocity)
                 if math.fabs(angle) > math.pi / 3:
                     continue
                 angle_corr = (obstacle_sheep_dist / self.obstacle_effect_radius) * 3 + 1
