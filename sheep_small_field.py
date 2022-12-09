@@ -2,12 +2,12 @@ import math
 
 from matplotlib import pyplot as plt
 import numpy as np
-
+import random
 from helper import *
 
 
 class SheepHeard:
-    def __init__(self, sheepheard_size=7, max_steps=3000):
+    def __init__(self, sheepheard_size=40, max_steps=3000):
         self.N = sheepheard_size
         self.success = False
         self.max_steps = max_steps
@@ -15,7 +15,7 @@ class SheepHeard:
         self.vizualize = True
         self.lmbda1=1
         self.lmbda=0
-        self.dog_velocity = 0
+        self.dog_velocity = np.array([0,0])
         # Goal position
         self.goal = np.array([115, 300])
         # phi_o
@@ -35,15 +35,46 @@ class SheepHeard:
         self.Ts = 0.01
 
         # sheep
-        self.sheep_list = [np.array([57.0, 50.0]),np.array([44.0, 71.0]),np.array([59.0, 64.0]),np.array([73.0, 71.0]),np.array([78.0, 60.0]),np.array([82.0, 71.0]),np.array([87.0, 58.0])]
-        self.sheep_list = np.array(self.sheep_list)
-        self.sheep_list[:,0] += 20
-        self.sheep_list[:,1] += 20
-        self.sheep_list = list(self.sheep_list)
-        self.sheep_list+=[np.array([57.0, 50.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]), np.array([73.0, 71.0]),
-          np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
-        self.obstacles = [np.array([100,200]), np.array([-1000,-1000])]
+        self.sheep_list = []
+        xsize = 100
+        ysize = 50
+        xstart=45
+        ystart=60
+        for i in range(self.N):
+            self.sheep_list.append(np.array([random.random()*xsize+xstart, random.random()*ysize+ystart]))
+        # self.sheep_list = [np.array([57.0, 80.0]),np.array([44.0, 71.0]),np.array([59.0, 64.0]),np.array([73.0, 71.0]),np.array([78.0, 60.0]),np.array([82.0, 71.0]),np.array([87.0, 58.0])]
+        # self.sheep_list = np.array(self.sheep_list)
+        # self.sheep_list[:,0] += 20
+        # self.sheep_list[:,1] += 20
+        # self.sheep_list = list(self.sheep_list)
+        # self.sheep_list+=[np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]), np.array([73.0, 71.0]),
+        #   np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
+        # self.sheep_list = np.array(self.sheep_list)
+        # self.sheep_list[:, 1] += 20
+        # self.sheep_list = list(self.sheep_list)
+        # self.sheep_list += [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
+        #                     np.array([73.0, 71.0]),
+        #                     np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
+        # self.sheep_list = np.array(self.sheep_list)
+        # self.sheep_list[:, 0] += 10
+        # self.sheep_list = list(self.sheep_list)
+        # self.sheep_list += [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
+        #                     np.array([73.0, 71.0]),
+        #                     np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
+        # self.sheep_list = np.array(self.sheep_list)
+        # self.sheep_list[:, 0] += 10
+        # self.sheep_list = list(self.sheep_list)
+        # self.sheep_list += [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
+        #                     np.array([73.0, 71.0]),
+        #                     np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
+        # self.obstacles = []#[np.array([100,200]), np.array([-1000,-1000])]
 
+        a = np.linspace(0, 2 * np.pi, 50)
+        radius = 5
+        x = radius * np.cos(a) + 100
+        y = radius * np.sin(a) + 200
+
+        self.obstacles = []# [np.array([x[i], y[i]]) for i in range(50)]
         # inter sheep distance phi_s
         self.sheep_radius = 5
 
@@ -56,13 +87,13 @@ class SheepHeard:
         self.fi_r = 15
         self.fi_g = 20
         self.fi_d = 30
-        self.theta_t =  2*math.pi / 3
+        self.theta_t =  2*math.pi / 4
         # possible error + -
-        self.theta_l = math.pi/4
-        self.theta_r = -math.pi/4
+        self.theta_l = math.pi/6
+        self.theta_r = -math.pi/6
         self.r_a = 40
-        self.gamma_a = 550
-        self.gamma_b = 475
+        self.gamma_a = 750
+        self.gamma_b = 575
 
         # self.N = sheepheard_size
         # self.success = False
@@ -122,19 +153,26 @@ class SheepHeard:
             from matplotlib import pyplot as plt
 
             # if i%10==0:
-            plt.clf()
+            # plt.clf()
+            fig = plt.figure(figsize=(7,7))
+            ax = fig.subplots()
             s = np.array(self.sheep_list)
-            plt.scatter(s[:, 0], s[:, 1], c='blue')
-            plt.scatter(self.dog_pos[0], self.dog_pos[1], c='red')
-            plt.scatter(self.dog_pos1[0], self.dog_pos1[1], c='orange')
-            # TODO remove static
-            plt.scatter(self.goal[0], self.goal[1])
-            plt.scatter(self.obstacles[0][0],self.obstacles[0][1])
-            plt.xlim([0, 250])
+            ax.scatter(s[:, 0], s[:, 1], c='blue')
+            ax.scatter(self.dog_pos[0], self.dog_pos[1], c='red')
+            ax.scatter(self.dog_pos1[0], self.dog_pos1[1], c='orange')
+            circle = plt.Circle((self.goal[0], self.goal[1]), self.goal_radius, alpha=0.3, color='green')
+            ax.add_artist(circle)
+            for o in self.obstacles:
+                plt.scatter(o[0], o[1], c='green')
+            # plt.scatter(self.obstacles[0][0],self.obstacles[0][1])
+            ax.set_xlim([0, 350])
             # plt.xlim([50, 150])
-            plt.ylim([0, 350])
+            ax.set_ylim([0, 350])
+            ax.set_title("Number of sheep: "+str(self.N))
+            fig.savefig("./figs/"+str(str(i).zfill(3)))
+            plt.close()
             # plt.ylim([150, 250])
-            plt.show(block=False)
+            # fig.show()
 
             i+=1
 
@@ -148,8 +186,7 @@ class SheepHeard:
             self.dog_pos1 = self.dog_pos1+self.Ts * self.dog_velocity1
             for dog in [self.dog_pos1, self.dog_pos]:
                 for ii, sheep in enumerate(self.sheep_list):
-                    # if (she<ep == [70.45771376, 57.77143582]).all():
-                    #     print("!")
+
                     x=vector_size(sheep-dog)
                     if x>0 and x<=self.dog_radius:
                         fi =self.alpha* (1/x - 1/self.dog_radius)
@@ -157,7 +194,7 @@ class SheepHeard:
                         fi=0
 
                     v_di = fi*unit_vector(sheep-dog)
-                    # print(v_di)
+
                     v_si=0
                     for sheep_ in self.sheep_list:
                         #
@@ -238,9 +275,8 @@ class SheepHeard:
         if sheep_at_goal < self.N:
             visibility =visible_sheep(dog_pos, self.dog_radius, self.goal, self.sheep_list)
             center_of_visible_sheep =  calculate_center_of_visible_sheep(self.sheep_list, visibility)
-            plt.scatter(center_of_visible_sheep[0], center_of_visible_sheep[1], color='green')
             angle = calculate_angle_between_vectors(center_of_visible_sheep-dog_pos, other_dog-dog_pos)
-            print(angle)
+
             # right dog
             if angle > 0:
                 center_of_mass_goal_vector = center_of_visible_sheep-self.goal
@@ -248,7 +284,7 @@ class SheepHeard:
                 if dist < 5:
                     self.lmbda1=0
 
-                    temp =((right_most_visible_from_dog(self.sheep_list, visibility, self.goal))-self.dog_pos)
+                    temp =((right_most_visible_from_dog(self.sheep_list, visibility, dog_pos))-self.dog_pos)
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
                     else:
@@ -261,7 +297,7 @@ class SheepHeard:
                     self.lmbda1=1
 
                     temp =((left_most_visible_from_dog(self.sheep_list,
-                                                                            visibility, self.goal))-self.dog_pos)
+                                                                            visibility, dog_pos))-self.dog_pos)
 
 
                     if vector_size(temp) >= self.r_a:
@@ -273,7 +309,7 @@ class SheepHeard:
                         dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
 
                 elif self.lmbda1 == 1:
-                    temp = (( left_most_visible_from_dog(self.sheep_list,   visibility, self.goal))-self.dog_pos)
+                    temp = (( left_most_visible_from_dog(self.sheep_list,   visibility, dog_pos))-dog_pos)
 
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
@@ -284,7 +320,7 @@ class SheepHeard:
                         dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
                 else:
                     temp = ((right_most_visible_from_dog(self.sheep_list,
-                                                                                visibility, self.goal))-self.dog_pos)
+                                                                                visibility, dog_pos))-dog_pos)
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
                     else:
@@ -298,11 +334,11 @@ class SheepHeard:
                 dist = np.linalg.norm(np.cross(center_of_visible_sheep-self.goal, self.goal-dog_pos)/np.linalg.norm(center_of_visible_sheep-self.goal))
 
                 if all_on_right(dog_pos, self.goal, self.sheep_list) and calculateLC(self.sheep_list, self.goal,
-                                                                                     self.dog_radius, 'right',
-                                                                                     self.dog_pos) > self.theta_t:
+                                                                                     self.dog_radius, 'left',
+                                                                                     dog_pos) > self.theta_t:
                     self.lmbda = 0
 
-                    temp = ((right_most_visible_from_dog(self.sheep_list, visibility, self.goal)) - self.dog_pos)
+                    temp = ((right_most_visible_from_dog(self.sheep_list, visibility, dog_pos)) - dog_pos)
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
                     else:
@@ -315,7 +351,7 @@ class SheepHeard:
                     self.lmbda = 1
 
                     temp = ((left_most_visible_from_dog(self.sheep_list,
-                                                        visibility, self.goal)) - self.dog_pos)
+                                                        visibility, dog_pos)) - dog_pos)
 
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
@@ -326,7 +362,7 @@ class SheepHeard:
                         dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
 
                 elif self.lmbda == 1:
-                    temp = ((left_most_visible_from_dog(self.sheep_list, visibility, self.goal)) - self.dog_pos)
+                    temp = ((left_most_visible_from_dog(self.sheep_list, visibility, dog_pos)) - dog_pos)
 
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
@@ -337,7 +373,7 @@ class SheepHeard:
                         dog_velocity = self.gamma_b * np.array(R).dot(unit_vector(temp))
                 else:
                     temp = ((right_most_visible_from_dog(self.sheep_list,
-                                                         visibility, self.goal)) - self.dog_pos)
+                                                         visibility, dog_pos)) - dog_pos)
                     if vector_size(temp) >= self.r_a:
                         dog_velocity = self.gamma_a * unit_vector(temp)
                     else:
@@ -348,15 +384,18 @@ class SheepHeard:
 
 
         else:
-            dog_velocity=0
+            dog_velocity=np.array([0,0])
+            # self.success = True
+            self.max_steps = self.current_step + 3
+
+
+
 
         for obstacle in self.obstacles:
             obstacle_sheep_dist = vector_size(obstacle - dog_pos)
             if obstacle_sheep_dist < self.obstacle_effect_radius and \
                     is_line_intersecting_circle(self.dog_velocity, dog_pos - obstacle, self.obstacle_radius):
-                # plt.scatter(sheep[0], sheep[1])
-                # s = sheep + velocity_sheep
-                # plt.scatter(s[0], s[1])
+
                 angle = calculate_angle_between_vectors(obstacle - dog_pos, self.dog_velocity)
                 if math.fabs(angle) > math.pi / 3:
                     continue

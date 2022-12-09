@@ -100,7 +100,7 @@ def right_most_visible_from_sheepfold(sheeps, visibility, goal):
                 right_most_dist = euclidean(left_most, goal)
     return right_most
 
-def left_most_visible_from_dog(sheeps, visibility,dog_pos):
+def right_most_visible_from_dog(sheeps, visibility,dog_pos):
     sheeps = np.array(sheeps)
     visible_sheeps = sheeps[np.array(visibility).astype(np.bool)]
     initial_point = np.array([0.0,0.0])
@@ -118,7 +118,7 @@ def left_most_visible_from_dog(sheeps, visibility,dog_pos):
 
     return right_most
 
-def right_most_visible_from_dog(sheeps, visibility,dog_pos):
+def left_most_visible_from_dog(sheeps, visibility,dog_pos):
     sheeps = np.array(sheeps)
     visible_sheeps = sheeps[np.array(visibility).astype(np.bool)]
     initial_point = np.array([0.0,0.0])
