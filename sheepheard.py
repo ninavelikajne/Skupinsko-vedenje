@@ -7,7 +7,7 @@ import random
 
 
 class SheepHeard:
-    def __init__(self, sheepheard_size=40, max_steps=3000):
+    def __init__(self, sheepheard_size=40, max_steps=50000):
         self.N = sheepheard_size
         self.success = False
         self.max_steps = max_steps
@@ -26,7 +26,7 @@ class SheepHeard:
         self.dog_radius = 100
 
         # sampling period
-        self.Ts = 0.01
+        self.Ts = 0.001 # todo edit
 
         # sheep
         self.sheep_list = []
@@ -34,8 +34,18 @@ class SheepHeard:
         ysize = 50
         xstart = 45
         ystart = 60
-        for i in range(self.N):
-            self.sheep_list.append(np.array([random.random() * xsize + xstart, random.random() * ysize + ystart]))
+
+        if self.N!=24:
+            for i in range(self.N):
+                self.sheep_list.append(np.array([random.random() * xsize + xstart, random.random() * ysize + ystart]))
+
+        else:
+            self.sheep_list = [np.array([57, 50]), np.array([44, 71]), np.array([59, 64]), np.array([73, 71]),
+                           np.array([78, 60]), np.array([82, 71]), np.array([87, 58]), np.array([96, 71]),
+                           np.array([55, 76]), np.array([64, 83]), np.array([69, 79]), np.array([50, 60]),
+                           np.array([87, 76]), np.array([95, 84]), np.array([100, 76]), np.array([105, 79]),
+                           np.array([65, 94]), np.array([69, 90]), np.array([105, 85]), np.array([79, 95]),
+                           np.array([84, 90]), np.array([90, 99]), np.array([100, 55]), np.array([105, 60])]
 
         # self.sheep_list = [np.array([57.0, 80.0]), np.array([44.0, 71.0]), np.array([59.0, 64.0]),
         #                    np.array([73.0, 71.0]), np.array([78.0, 60.0]), np.array([82.0, 71.0]),
@@ -66,17 +76,32 @@ class SheepHeard:
         #                     np.array([78.0, 60.0]), np.array([82.0, 71.0]), np.array([87.0, 58.0])]
         # self.obstacles = []#[np.array([100,200]), np.array([-1000,-1000])]
 
-        # circle obstacle
-        a = np.linspace(0, 2 * np.pi, 50)
-        radius = 5
-        x = radius * np.cos(a) + 100
-        y = radius * np.sin(a) + 200
-        # self.obstacles = [np.array([x[i], y[i]]) for i in range(50)]
+        # # 1 poligon
+        # a = np.linspace(0, 2 * np.pi, 20)
+        # radius = 2
+        # x = radius * np.cos(a) + 70
+        # y = radius * np.sin(a) + 100
+        # self.obstacles = [np.array([x[i], y[i]]) for i in range(20)]
+
+        # # 2 poligon
+        # a = np.linspace(0, 2 * np.pi, 20)
+        # radius = 2
+        # x = radius * np.cos(a) + 70
+        # y = radius * np.sin(a) + 100
+        # self.obstacles = [np.array([x[i], y[i]]) for i in range(20)]
+        # radius = 3
+        # x = radius * np.cos(a) + 100
+        # y = radius * np.sin(a) + 200
+        # self.obstacles += [np.array([x[i], y[i]]) for i in range(20)]
+
+
+        # 3 poligon
+        self.obstacles = np.linspace(np.array([100,200]),np.array([120,190]),30)
+
 
         # obstacle avoidance
-        self.obstacle_radius = 20
-        self.obstacle_effect_radius = 50
-        self.obstacles = []  # [np.array([100,200])]
+        self.obstacle_radius = 10
+        self.obstacle_effect_radius = 20
 
         # inter sheep distance phi_s
         self.sheep_radius = 5
@@ -104,33 +129,33 @@ class SheepHeard:
         """
         i = 0
         while (not self.success and self.current_step < self.max_steps):
-            # if i%10==0:
-            fig = plt.figure(figsize=(7, 7))
-            ax = fig.subplots()
-            s = np.array(self.sheep_list)
-            ax.scatter(s[:, 0], s[:, 1], c='blue')
-            ax.scatter(self.dog_pos[0], self.dog_pos[1], c='red')
-            circle = plt.Circle((self.goal[0], self.goal[1]), self.goal_radius, alpha=0.3, color='green')
-            ax.add_artist(circle)
-            for o in self.obstacles:
-                plt.scatter(o[0], o[1], c='green')
+            if i % 10 == 0: #todo edit
+                fig = plt.figure(figsize=(7, 7))
+                ax = fig.subplots()
+                s = np.array(self.sheep_list)
+                ax.scatter(s[:, 0], s[:, 1], c='blue')
+                ax.scatter(self.dog_pos[0], self.dog_pos[1], c='red')
+                circle = plt.Circle((self.goal[0], self.goal[1]), self.goal_radius, alpha=0.3, color='green')
+                ax.add_artist(circle)
+                for o in self.obstacles:
+                    plt.scatter(o[0], o[1], c='black')
 
-            # visibility = visible_sheep(self.dog_pos, self.dog_radius,
-            #                            self.goal, self.sheep_list)
-            #
-            # right = (right_most_visible_from_dog(self.sheep_list, visibility
-            #                                      , self.dog_pos))
-            # left = (left_most_visible_from_dog(self.sheep_list, visibility
-            #                                    , self.dog_pos))
-            # plt.scatter(right[0], right[1], c='orange')
-            # plt.scatter(left[0], left[1], c='green')
+                # visibility = visible_sheep(self.dog_pos, self.dog_radius,
+                #                            self.goal, self.sheep_list)
+                #
+                # right = (right_most_visible_from_dog(self.sheep_list, visibility
+                #                                      , self.dog_pos))
+                # left = (left_most_visible_from_dog(self.sheep_list, visibility
+                #                                    , self.dog_pos))
+                # plt.scatter(right[0], right[1], c='orange')
+                # plt.scatter(left[0], left[1], c='green')
 
-            ax.set_xlim([0, 350])
-            # plt.xlim([50, 150])
-            ax.set_ylim([0, 350])
-            ax.set_title("Number of sheep: " + str(self.N))
-            fig.savefig("./figs/" + str(str(i).zfill(3)))
-            plt.close()
+                ax.set_xlim([0, 350])
+                # plt.xlim([50, 150])
+                ax.set_ylim([0, 350])
+                ax.set_title("Number of sheep: " + str(self.N))
+                fig.savefig("./figs/" + str(str(i).zfill(9)))
+                plt.close()
 
             i += 1
             self.current_step += 1
@@ -260,7 +285,7 @@ class SheepHeard:
 
         else:
             self.dog_velocity = np.array([0, 0])
-            self.max_steps = self.current_step + 3
+            self.max_steps = self.current_step + 2
 
         for obstacle in self.obstacles:
             obstacle_sheep_dist = vector_size(obstacle - self.dog_pos)

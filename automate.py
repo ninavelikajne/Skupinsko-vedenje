@@ -16,7 +16,8 @@ for filename in os.listdir(folder):
         print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 # run sheep
-s = SheepHeard(sheepheard_size=40, max_steps=4000)
+# when sheepheard_size=24 -> article sheep positon
+s = SheepHeard(sheepheard_size=40, max_steps=5000)
 s.run()
 
 # plot

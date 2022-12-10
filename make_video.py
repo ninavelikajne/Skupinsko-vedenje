@@ -2,7 +2,7 @@ import cv2
 import os
 
 image_folder = './figs'
-video_name = 'video.avi'
+video_name = '40sheep_obstacle3.avi'
 
 images = sorted([img for img in os.listdir(image_folder) if img.endswith(".png")])
 frame = cv2.imread(os.path.join(image_folder, images[0]))
