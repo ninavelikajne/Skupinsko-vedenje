@@ -1,9 +1,10 @@
 from matplotlib import pyplot as plt
 import numpy as np
+import random
 from helper import *
 
 
-class SheepHeard:
+class Shepherd:
     def __init__(self, sheepheard_size=24, max_steps=5000000):
         self.N = sheepheard_size
         self.success = False
@@ -24,10 +25,6 @@ class SheepHeard:
         # phi_n
         self.dog_radius = 100
 
-        # obstacle avoidance
-        self.obstacle_radius = 10
-        self.obstacle_effect_radius = 20
-
         # sampling period
         self.Ts = 0.001
 
@@ -37,24 +34,43 @@ class SheepHeard:
         ysize = 50
         xstart = 45
         ystart = 60
-        self.sheep_list = [np.array([57, 50]), np.array([44, 71]), np.array([59, 64]), np.array([73, 71]),
-                           np.array([78, 60]), np.array([82, 71]), np.array([87, 58]), np.array([96, 71]),
-                           np.array([55, 76]), np.array([64, 83]), np.array([69, 79]), np.array([50, 60]),
-                           np.array([87, 76]), np.array([95, 84]), np.array([100, 76]), np.array([105, 79]),
-                           np.array([65, 94]), np.array([69, 90]), np.array([105, 85]), np.array([79, 95]),
-                           np.array([84, 90]), np.array([90, 99]), np.array([100, 55]), np.array([105, 60])]
-        # for i in range(self.N):
-        #     self.sheep_list.append(np.array([random.random()*xsize+xstart, random.random()*ysize+ystart]))
 
-        a = np.linspace(0, 2 * np.pi, 20)
-        radius = 2
-        x = radius * np.cos(a) + 70
-        y = radius * np.sin(a) + 100
-        self.obstacles = [np.array([x[i], y[i]]) for i in range(20)]
-        radius = 3
-        x = radius * np.cos(a) + 100
-        y = radius * np.sin(a) + 200
-        self.obstacles += [np.array([x[i], y[i]]) for i in range(20)]
+        if self.N != 24:
+            for i in range(self.N):
+                self.sheep_list.append(np.array([random.random() * xsize + xstart, random.random() * ysize + ystart]))
+        else:
+            self.sheep_list = [np.array([57, 50]), np.array([44, 71]), np.array([59, 64]), np.array([73, 71]),
+                               np.array([78, 60]), np.array([82, 71]), np.array([87, 58]), np.array([96, 71]),
+                               np.array([55, 76]), np.array([64, 83]), np.array([69, 79]), np.array([50, 60]),
+                               np.array([87, 76]), np.array([95, 84]), np.array([100, 76]), np.array([105, 79]),
+                               np.array([65, 94]), np.array([69, 90]), np.array([105, 85]), np.array([79, 95]),
+                               np.array([84, 90]), np.array([90, 99]), np.array([100, 55]), np.array([105, 60])]
+
+        # # 1 poligon
+        # a = np.linspace(0, 2 * np.pi, 20)
+        # radius = 2
+        # x = radius * np.cos(a) + 70
+        # y = radius * np.sin(a) + 100
+        # self.obstacles = [np.array([x[i], y[i]]) for i in range(20)]
+
+        # # 2 poligon
+        # a = np.linspace(0, 2 * np.pi, 20)
+        # radius = 2
+        # x = radius * np.cos(a) + 70
+        # y = radius * np.sin(a) + 100
+        # self.obstacles = [np.array([x[i], y[i]]) for i in range(20)]
+        # radius = 3
+        # x = radius * np.cos(a) + 100
+        # y = radius * np.sin(a) + 200
+        # self.obstacles += [np.array([x[i], y[i]]) for i in range(20)]
+
+        # 3 poligon
+        self.obstacles = np.linspace(np.array([100, 200]), np.array([120, 190]), 30)
+
+        # obstacle avoidance
+        self.obstacle_radius = 10
+        self.obstacle_effect_radius = 20
+
         # inter sheep distance phi_s
         self.sheep_radius = 5
 
@@ -77,11 +93,10 @@ class SheepHeard:
 
     def run(self):
         """
-            Runs the simulation of implemented sheepheard driven sheep transport
+            Runs the simulation of implemented shepherd driven sheep transport
         """
         i = 0
         while (not self.success and self.current_step < self.max_steps):
-
 
             if i % 10 == 0:
 
@@ -130,7 +145,6 @@ class SheepHeard:
                         temp_size = vector_size(sheep_ - sheep)
                         if temp_size < self.fi_r:  #:
                             psi = ((self.fi_r - temp_size) / self.fi_r) * self.zeta
-                            # psi = self.beta * (1/(math.ceil(temp_size)-self.sheep_radius)-(1/(self.fi_r-self.sheep_radius)))
 
                         elif temp_size >= self.fi_r and temp_size <= self.fi_g:
                             psi = 0
@@ -171,7 +185,6 @@ class SheepHeard:
 
                     self.sheep_list[ii] = self.sheep_list[ii] + (self.Ts / 2 * velocity_sheep)
 
-
     def calculate_dog_velocity(self, dog_pos, other_dog):
         sheep_at_goal = 0
         for sheep_location in self.sheep_list:
@@ -179,7 +192,7 @@ class SheepHeard:
                 sheep_at_goal += 1
 
         if sheep_at_goal < self.N:
-            visibility = visible_sheep(dog_pos, self.dog_radius, self.goal, self.sheep_list)
+            visibility = visible_sheep(dog_pos, self.dog_radius, self.sheep_list)
             center_of_visible_sheep = calculate_center_of_visible_sheep(self.sheep_list, visibility)
             angle = calculate_angle_between_vectors(center_of_visible_sheep - dog_pos, other_dog - dog_pos)
 
