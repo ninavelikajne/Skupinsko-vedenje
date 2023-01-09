@@ -1,11 +1,11 @@
 # Sheepdog Driven Algorithm for Sheep Herd Transport
 
-This repository contains re-implementation of the Sheepdog Driven Algorithm 
+This repository contains code that is based on related article of the Sheepdog Driven Algorithm 
 for Sheep Herd Transport algorithm from paper [Sheepdog Driven Algorithm 
 for Sheep Herd Transport](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9549396).
 
-## Our Improvement
-We improved the algorithm in the original paper by adding one additional dog, and by adding logic for obstacle avoidance.
+## Project description
+In this study, we address the swarming behaviour, i.e., coordinated behaviour that is exhibited by group of individuals. Specifically, we examine motion of individual sheep agents, that are part of a herd, in combination with a threat -- dog. Starting with method in aforementioned article, we set two goals: adding obstacles in the field, between the starting position of the herd and the goal. Thus, we needed to add obstacle avoidance to motion mechanisms in order to make sheepdog driven transport of sheep herd more realistic. Additionally, we succesfully designed algorithm for two-dog colaborative herding. 
 
 # Project Structure
 * *automate.py* is a script that runs the whole procedure. First it clears fig directory. The runs the simulation and saves plots into figs directory. At the end it generates an video from all the saved plots in figs folder. First parameter is the number of shepherds, and second one is the number of sheep.
